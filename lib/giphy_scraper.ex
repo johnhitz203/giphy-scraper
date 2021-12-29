@@ -1,11 +1,12 @@
 defmodule GiphyScraper do
-  @type response :: %Elixir.HTTPoison.Response{body: Bitstring, request: HTTPoison.Request, request_url: Bitstring, status_code: integer}
+  # @type response :: {:ok, HTTPoison.Response.t() | HTTPoison.AsyncResponse.t()} | {:error, HTTPoison.Error.t()}
 
-  def return_gif_for_given_search_term(query) do
-    # response = make_request(query)
-    # Map.keys response
-    with {:ok, %{body: body}} <- make_request(query) do
-      body
+  # @spec return_gifs_for_search_term(query) :: response
+  def return_gifs_for_search_term(query) do
+    with {:ok, %{body: body}} <- make_request(query),
+         {:ok, %{"data" => data}} <- decode_body_from_json(body) do
+           data
+      
     end
   end
   # def search(query) do
@@ -27,21 +28,19 @@ defmodule GiphyScraper do
   #   body
   # end
   #
-  # defp decode_body_from_json(body) do
-  #   # [
-  #   #   "analytics", "analytics_response_payload", "bitly_gif_url", "bitly_url",
-  #   #   "content_url", "embed_url", "id", "images", "import_datetime", "is_sticker",
-  #   #   "rating", "slug", "source", "source_post_url", "source_tld", "title",
-  #   #   "trending_datetime", "type", "url", "user", "username"
-  #   # ]
-  #   #
-  #   # {:ok, %{"data" => data}} = Jason.decode(body)
-  #   #
-  #   # [head|tail] = data
-  #   # %{"title" => title, "id" => id, "url" => url, "username" => username} = head
-  #   with {:ok, %{"data" => data}} <- Jason.decode(body) do
-  #
-  #   end
-  # end
+  defp decode_body_from_json(body) do
+    # [
+    #   "analytics", "analytics_response_payload", "bitly_gif_url", "bitly_url",
+    #   "content_url", "embed_url", "id", "images", "import_datetime", "is_sticker",
+    #   "rating", "slug", "source", "source_post_url", "source_tld", "title",
+    #   "trending_datetime", "type", "url", "user", "username"
+    # ]
+    #
+    {:ok, %{"data" => data}} = Jason.decode(body)
+    #
+    # [head|tail] = data
+    # %{"title" => title, "id" => id, "url" => url, "username" => username} = head
+    # IO.puts "WTF? Over!"
+  end
 
 end
