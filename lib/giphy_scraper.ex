@@ -1,46 +1,30 @@
 defmodule GiphyScraper do
   # @type response :: {:ok, HTTPoison.Response.t() | HTTPoison.AsyncResponse.t()} | {:error, HTTPoison.Error.t()}
 
+  alias GiphyScraper.GiphyImage
+
   # @spec return_gifs_for_search_term(query) :: response
-  def return_gifs_for_search_term(query) do
-    with {:ok, %{body: body}} <- make_request(query),
-         {:ok, %{"data" => data}} <- decode_body_from_json(body) do
-           data
-      
+  def return_gifs_for_search_term(query, quantity \\ 25) do
+    with {:ok, %{body: body}} <- make_request(query, quantity),
+         {:ok, %{"data" => data}} <- decode_response_body_from_json(body) do
+
+      return_data_as_struct(data)
+
     end
   end
-  # def search(query) do
-  #   query
-  #   |> make_request
-  #   |> parse_response
-  #   |> decode_body_from_json
-  # end
-  #
-  defp make_request(query) do
-    url = "http://api.giphy.com/v1/gifs/search?q=#{query}&api_key=SVjtbsi8sycHYZ4KhkTtXV2b5Z72ehTG&limit=2"
+
+  defp make_request(query, quantity) do
+    url = "http://api.giphy.com/v1/gifs/search?q=#{query}&api_key=SVjtbsi8sycHYZ4KhkTtXV2b5Z72ehTG&limit=#{quantity}"
     HTTPoison.get(url)
   end
-  #
-  # # @spec parse_response(response) :: body
-  # defp parse_response(response) do
-  #   %{body: body} = HTTPoison.process_response(response)
-  #
-  #   body
-  # end
-  #
-  defp decode_body_from_json(body) do
-    # [
-    #   "analytics", "analytics_response_payload", "bitly_gif_url", "bitly_url",
-    #   "content_url", "embed_url", "id", "images", "import_datetime", "is_sticker",
-    #   "rating", "slug", "source", "source_post_url", "source_tld", "title",
-    #   "trending_datetime", "type", "url", "user", "username"
-    # ]
-    #
+
+  defp decode_response_body_from_json(body) do
     {:ok, %{"data" => data}} = Jason.decode(body)
-    #
-    # [head|tail] = data
-    # %{"title" => title, "id" => id, "url" => url, "username" => username} = head
-    # IO.puts "WTF? Over!"
   end
 
+  defp return_data_as_struct(data) do
+    Enum.map(data, fn x ->
+      %GiphyImage{id: x["id"], url: x["url"], username: x["username"], title: x["title"]}
+    end)
+  end
 end
